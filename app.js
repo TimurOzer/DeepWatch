@@ -27,10 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
         for(const seriesName in seriesData) {
             const seriesCard = document.createElement('div');
             seriesCard.className = 'series-card';
-            seriesCard.innerHTML = 
+            seriesCard.innerHTML = `
                 <h2>${seriesName}</h2>
                 <div class="episodes-list" style="margin-top: 15px; display: none;"></div>
-            ;
+            `;
 
             seriesCard.querySelector('h2').addEventListener('click', () => {
                 const episodesList = seriesCard.querySelector('.episodes-list');
@@ -59,13 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function playEpisode(basePath, totalParts) {
-        currentVideoParts = Array.from({length: totalParts}, (_, i) => ${basePath}${i + 1}.mp4);
-        currentPartIndex = 0;
-        
-        document.querySelector('.video-container').style.display = 'block';
-        playNextPart();
-    }
+function playEpisode(basePath, totalParts) {
+    // Part numaralandırmasını 0'dan başlatıyoruz (part0, part1...)
+    currentVideoParts = Array.from({length: totalParts}, (_, i) => `${basePath}${i}.mp4`);
+    currentPartIndex = 0;
+    
+    document.querySelector('.video-container').style.display = 'block';
+    playNextPart();
+}
 
     function playNextPart() {
         if(currentPartIndex >= currentVideoParts.length) return;
