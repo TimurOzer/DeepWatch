@@ -1,20 +1,24 @@
-// app.js
+// app.js (Güncel Versiyon)
 document.addEventListener('DOMContentLoaded', () => {
     const seriesData = {
         "Dark Series": {
             episodes: {
-                "1. Bölüm": { parts: 3, path: "series/dark-series/eps1/part" },
-                "2. Bölüm": { parts: 3, path: "series/dark-series/eps2/part" }
+                "1. Bölüm": { 
+                    parts: 3, 
+                    path: "series/dark-series/eps1/part" 
+                }
             }
         }
     };
 
     let currentVideoParts = [];
     let currentPartIndex = 0;
-
     const videoPlayer = document.getElementById('videoPlayer');
     const seriesList = document.getElementById('series-list');
 
+    // GitHub Pages için Path Ayarları
+    const isGitHubPages = window.location.host.includes('github.io');
+    
     document.getElementById('series').addEventListener('click', () => {
         showSeriesList();
     });
@@ -25,21 +29,26 @@ document.addEventListener('DOMContentLoaded', () => {
         seriesList.style.display = 'block';
 
         for(const seriesName in seriesData) {
-            const seriesCard = document.createElement('div');
-            seriesCard.className = 'series-card';
-            seriesCard.innerHTML = `
-                <h2>${seriesName}</h2>
-                <div class="episodes-list" style="margin-top: 15px; display: none;"></div>
-            `;
-
-            seriesCard.querySelector('h2').addEventListener('click', () => {
-                const episodesList = seriesCard.querySelector('.episodes-list');
-                episodesList.style.display = episodesList.style.display === 'none' ? 'block' : 'none';
-                loadEpisodes(seriesName, episodesList);
-            });
-
+            const seriesCard = createSeriesCard(seriesName);
             seriesList.appendChild(seriesCard);
         }
+    }
+
+    function createSeriesCard(seriesName) {
+        const seriesCard = document.createElement('div');
+        seriesCard.className = 'series-card';
+        seriesCard.innerHTML = `
+            <h2>${seriesName}</h2>
+            <div class="episodes-list" style="display: none;"></div>
+        `;
+
+        seriesCard.querySelector('h2').addEventListener('click', () => {
+            const episodesList = seriesCard.querySelector('.episodes-list');
+            episodesList.style.display = episodesList.style.display === 'none' ? 'block' : 'none';
+            loadEpisodes(seriesName, episodesList);
+        });
+
+        return seriesCard;
     }
 
     function loadEpisodes(seriesName, container) {
@@ -59,26 +68,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-function playEpisode(basePath, totalParts) {
-    // Part numaralandırmasını 0'dan başlatıyoruz (part0, part1...)
-    currentVideoParts = Array.from({length: totalParts}, (_, i) => `${basePath}${i}.mp4`);
-    currentPartIndex = 0;
-    
-    document.querySelector('.video-container').style.display = 'block';
-    playNextPart();
-}
+    function playEpisode(basePath, totalParts) {
+        currentVideoParts = Array.from({length: totalParts}, (_, i) => {
+            let path = `${basePath}${i}.mp4`;
+            // GitHub Pages için özel path düzenlemesi
+            if(isGitHubPages) path = `/${path}`;
+            return path;
+        });
+        
+        currentPartIndex = 0;
+        document.querySelector('.video-container').style.display = 'block';
+        videoPlayer.controls = true;
+        playNextPart();
+    }
 
     function playNextPart() {
-        if(currentPartIndex >= currentVideoParts.length) return;
+        if(currentPartIndex >= currentVideoParts.length) {
+            videoPlayer.style.display = 'none';
+            return;
+        }
 
         videoPlayer.src = currentVideoParts[currentPartIndex];
-        videoPlayer.play();
+        videoPlayer.load();
         
+        videoPlayer.addEventListener('canplay', () => {
+            videoPlayer.play().catch(error => {
+                console.log('Autoplay engellendi, kullanıcı etkileşimi bekleniyor');
+                videoPlayer.controls = true;
+            });
+        }, { once: true });
+
         videoPlayer.onended = () => {
             currentPartIndex++;
-            if(currentPartIndex < currentVideoParts.length) {
-                playNextPart();
-            }
+            playNextPart();
         };
     }
 });
