@@ -27,7 +27,7 @@ function showContent(type) {
     // Tab Butonlarını Güncelle
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.textContent.toLowerCase() === type) btn.classList.add('active');
+        if (btn.getAttribute('data-type') === type) btn.classList.add('active');
     });
 
     // Medya Kartlarını Oluştur
@@ -73,6 +73,7 @@ function playEpisode(series, episode) {
     content.innerHTML = `
         <div class="video-player">
             <h2>${series} - ${episode}</h2>
+            <div id="loading" class="loading"></div>
             <video id="videoPlayer" controls>
                 <source src="series/${series}/${episode}/part0.webm" type="video/webm">
             </video>
@@ -82,46 +83,49 @@ function playEpisode(series, episode) {
     
     const videoPlayer = document.getElementById('videoPlayer');
     const nextPartBtn = document.getElementById('nextPartBtn');
+    const loading = document.getElementById('loading');
     let currentPart = 0;
-
-    // Önceden yükleme için video parçasını önceden başlat
+    const maxParts = 3; // Örnek: 4 part (0-3)
     let preloadedPart = null;
-    
-    // Video bittiğinde otomatik geçiş için
-    videoPlayer.addEventListener('ended', () => {
-        currentPart++;
-        const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
-        
-        // Eğer parça önceden yüklendiyse, hemen oynat
-        if (preloadedPart) {
-            videoPlayer.src = preloadedPart;
-            videoPlayer.play();
-        } else {
-            // Önceki parça yüklenene kadar bekle
-            preloadNextPart(nextPart, videoPlayer);
-        }
+
+    videoPlayer.style.display = 'none';
+    loading.style.display = 'block';
+
+    videoPlayer.addEventListener('loadeddata', () => {
+        videoPlayer.style.display = 'block';
+        loading.style.display = 'none';
     });
 
-    // "Next Part" butonuna tıklanırsa
-    nextPartBtn.onclick = () => {
-        currentPart++;
-        const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
-        preloadNextPart(nextPart, videoPlayer);
-    };
-    
-    // Yeni video parçasını yükle ve hazır olmasını bekle
-    function preloadNextPart(nextPart, videoPlayer) {
+    const loadNextPart = (nextPart) => {
         fetch(nextPart)
-            .then(response => response.blob())
+            .then(response => {
+                if (!response.ok) throw new Error('Part yok');
+                return response.blob();
+            })
             .then(blob => {
-                // Video parçası yüklendi, hemen oynat
+                if (preloadedPart) URL.revokeObjectURL(preloadedPart);
                 const videoURL = URL.createObjectURL(blob);
-                preloadedPart = videoURL;  // Önceden yüklenen parça
+                preloadedPart = videoURL;
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
             })
-            .catch(() => console.log('Part yüklenemedi.'));
-    }
+            .catch(() => {
+                console.log('Bölüm sona erdi.');
+                nextPartBtn.disabled = true;
+            });
+    };
+
+    videoPlayer.addEventListener('ended', () => {
+        if (currentPart >= maxParts) return;
+        currentPart++;
+        loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
+    });
+
+    nextPartBtn.onclick = () => {
+        if (currentPart >= maxParts) return;
+        currentPart++;
+        loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
+    };
 }
 
 function playMedia(movie) {
