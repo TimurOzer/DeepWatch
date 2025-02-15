@@ -82,9 +82,8 @@ video {
 }
 
 .logo {
-    width: 100px; /* Logonun genişliği */
-    height: 100px; /* Logonun yüksekliği */
-    margin-right: 15px; /* Logo ile başlık arasındaki boşluk */
+    width: 200px; /* Logonun genişliği */
+    height: 200px; /* Logonun yüksekliği */
 }
 
 h1 {
