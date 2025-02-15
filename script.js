@@ -98,8 +98,9 @@ function playEpisode(series, episode) {
     const nextPartLoadText = document.getElementById('nextPartLoadText');
 
     let currentPart = 0;         // Şu anda oynatılan part numarası
-    let nextVideoURL = null;     // Preload edilmiş sonraki part URL'si (tamamlanmışsa)
+    let nextVideoURL = null;     // Preload edilmiş sonraki partın URL'si (tamamlandıysa)
     let isPreloading = false;    // Preload işlemi devam ediyorsa true
+    let preloadingPartNumber = null; // Hangi part numarası preload ediliyor (veya preload edildi)
 
     videoPlayer.style.display = 'none';
     loading.style.display = 'block';
@@ -107,7 +108,7 @@ function playEpisode(series, episode) {
     videoPlayer.addEventListener('loadeddata', () => {
         videoPlayer.style.display = 'block';
         loading.style.display = 'none';
-        // Parça yüklendiğinde sıradaki partın preload'ini başlatıyoruz
+        // Parça yüklendiğinde, hemen sonraki partı preload etmeye başlıyoruz
         checkNextPart();
     });
 
@@ -124,9 +125,9 @@ function playEpisode(series, episode) {
         }
     });
 
-    // Video bittiğinde, eğer preload edilmiş sonraki part varsa otomatik geçiş yap
+    // Video bittiğinde, preload edilmiş sonraki part varsa otomatik geçiş yap
     videoPlayer.addEventListener('ended', () => {
-        if (nextVideoURL) {
+        if (nextVideoURL && preloadingPartNumber === currentPart + 1) {
             currentPart++;
             console.log("✅ Otomatik geçiş. Yeni part numarası:", currentPart);
             videoPlayer.src = nextVideoURL;
@@ -135,6 +136,7 @@ function playEpisode(series, episode) {
                 console.log("🔴 Otomatik oynatma engellendi, lütfen 'Next Part'a tıklayın.");
             });
             nextVideoURL = null;
+            preloadingPartNumber = null;
             // Yeni part oynandıktan sonra sıradakini preload etmek için kontrol ediyoruz
             checkNextPart();
         }
@@ -146,47 +148,52 @@ function playEpisode(series, episode) {
             console.log("⚠️ Preload devam ediyor, lütfen bekleyin.");
             return;
         }
-        if (nextVideoURL) {
+        if (nextVideoURL && preloadingPartNumber === currentPart + 1) {
             currentPart++;
             console.log("✅ Manuel geçiş. Yeni part numarası:", currentPart);
             videoPlayer.src = nextVideoURL;
             videoPlayer.load();
             videoPlayer.play().catch(() => {
-                console.log("🔴 Tarayıcı otomatik oynatmayı engelledi, lütfen tıklayın.");
+                console.log("🔴 Tarayıcı otomatik oynatmayı engelledi, kullanıcı etkileşimi bekleniyor.");
             });
             nextVideoURL = null;
+            preloadingPartNumber = null;
             nextPartBtn.style.display = "none";
             checkNextPart();
         } else {
-            console.log("❌ HATA: Preloaded video yok!");
+            console.log("❌ HATA: Preloaded video yok veya preload yanlış part için!");
             nextPartBtn.style.display = "none";
         }
     };
 
-    // Sonraki partın varlığını kontrol edip, preload başlatır. Eğer zaten preload edilmiş veya işlem devam ediyorsa, tekrar başlatmaz.
+    // Sonraki partın varlığını kontrol edip, preload işlemini başlatır.
     function checkNextPart() {
-        // Eğer preload zaten yapıldı veya devam ediyorsa, yeni başlatmayalım.
-        if (isPreloading || nextVideoURL) return;
-
-        const nextPartPath = `series/${series}/${episode}/part${currentPart + 1}.webm`;
+        const nextPartNumber = currentPart + 1;
+        // Eğer isPreloading true veya zaten preload edilmiş bir part bekleniyorsa, yeni başlatma.
+        if (isPreloading || (nextVideoURL && preloadingPartNumber === nextPartNumber)) {
+            return;
+        }
+        preloadingPartNumber = nextPartNumber;
+        const nextPartPath = `series/${series}/${episode}/part${nextPartNumber}.webm`;
         fetch(nextPartPath, { method: 'HEAD' })
             .then(response => {
                 if (response.ok) {
-                    // Preload'e başlıyoruz
-                    preloadNextPart(nextPartPath);
+                    preloadNextPart(nextPartPath, nextPartNumber);
                 } else {
                     nextPartBtn.style.display = 'none';
+                    preloadingPartNumber = null;
                 }
             })
             .catch(() => {
                 nextPartBtn.style.display = 'none';
+                preloadingPartNumber = null;
             });
     }
 
     // Belirtilen URL için videoyu tamamen okuyup Blob oluşturur, ardından video URL'sini nextVideoURL'e atar.
-    function preloadNextPart(url) {
+    // partNumber: hangi part numarası preload ediliyor.
+    function preloadNextPart(url, partNumber) {
         isPreloading = true;
-        // Preload devam ederken butonu devre dışı bırakıyoruz
         nextPartBtn.disabled = true;
         nextPartProgress.value = 0;
         nextPartLoadText.textContent = "0%";
@@ -216,10 +223,15 @@ function playEpisode(series, episode) {
                 return pump().then(() => new Blob(chunks));
             })
             .then(blob => {
-                nextVideoURL = URL.createObjectURL(blob);
-                console.log("Sonraki part tamamen yüklendi:", url);
-                nextPartBtn.style.display = "inline-block";
-                nextPartBtn.disabled = false;
+                // Sadece, preload edilen part numarası beklenenle eşleşiyorsa atama yapalım
+                if (preloadingPartNumber === partNumber) {
+                    nextVideoURL = URL.createObjectURL(blob);
+                    console.log("Sonraki part tamamen yüklendi:", url);
+                    nextPartBtn.style.display = "inline-block";
+                    nextPartBtn.disabled = false;
+                } else {
+                    console.log("Preloaded part numarası uyuşmuyor, atama yapılmadı.");
+                }
                 isPreloading = false;
             })
             .catch(() => {
@@ -230,6 +242,7 @@ function playEpisode(series, episode) {
             });
     }
 }
+
 
 function playMedia(movie) {
     const content = document.getElementById('content');
