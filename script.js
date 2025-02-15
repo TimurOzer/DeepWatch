@@ -80,7 +80,7 @@ function playEpisode(series, episode) {
             <button id="nextPartBtn" style="display: none;">Next Part ➡️</button>
         </div>
     `;
-    
+
     const videoPlayer = document.getElementById('videoPlayer');
     const nextPartBtn = document.getElementById('nextPartBtn');
     const loading = document.getElementById('loading');
@@ -94,6 +94,7 @@ function playEpisode(series, episode) {
     videoPlayer.addEventListener('loadeddata', () => {
         videoPlayer.style.display = 'block';
         loading.style.display = 'none';
+        checkNextPart(); // İlk part yüklendiğinde bir sonraki part olup olmadığını kontrol et
     });
 
     // Video bittiğinde otomatik olarak sonraki partı yüklemeye çalış
@@ -112,7 +113,7 @@ function playEpisode(series, episode) {
         }
     };
 
-    const loadNextPart = (nextPart) => {
+    function loadNextPart(nextPart) {
         fetch(nextPart)
             .then(response => {
                 if (!response.ok) throw new Error('Part yok');
@@ -124,14 +125,30 @@ function playEpisode(series, episode) {
                 preloadedPart = videoURL;
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
-                nextPartBtn.style.display = 'inline-block'; // Butonu görünür yap
+                checkNextPart(); // Yeni part yüklendiğinde bir sonraki partı kontrol et
             })
             .catch(() => {
                 console.log('Bölüm sona erdi.');
                 nextPartBtn.style.display = 'none'; // Eğer part yoksa butonu gizle
             });
-    };
+    }
+
+    function checkNextPart() {
+        let nextPartPath = `series/${series}/${episode}/part${currentPart + 1}.webm`;
+        fetch(nextPartPath, { method: 'HEAD' }) // Sadece var mı diye kontrol eder, gereksiz veri indirmez
+            .then(response => {
+                if (response.ok) {
+                    nextPartBtn.style.display = 'inline-block'; // Sonraki part varsa butonu göster
+                } else {
+                    nextPartBtn.style.display = 'none'; // Sonraki part yoksa butonu gizle
+                }
+            })
+            .catch(() => {
+                nextPartBtn.style.display = 'none'; // Hata alırsa butonu gizle
+            });
+    }
 }
+
 
 function playMedia(movie) {
     const content = document.getElementById('content');
