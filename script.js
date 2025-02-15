@@ -109,11 +109,11 @@ function playEpisode(series, episode) {
     nextPartBtn.onclick = () => {
         if (currentPart < maxParts) {
             currentPart++;
-            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
+            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`, true);
         }
     };
 
-    function loadNextPart(nextPart) {
+    function loadNextPart(nextPart, playImmediately = false) {
         fetch(nextPart)
             .then(response => {
                 if (!response.ok) throw new Error('Part yok');
@@ -124,7 +124,14 @@ function playEpisode(series, episode) {
                 const videoURL = URL.createObjectURL(blob);
                 preloadedPart = videoURL;
                 videoPlayer.src = videoURL;
-                videoPlayer.play();
+
+                // Kullanıcı etkileşimi olmadan otomatik oynatma başarısız olursa, bir alternatif sun
+                if (playImmediately) {
+                    videoPlayer.play().catch(() => {
+                        console.log("Tarayıcı otomatik oynatmayı engelledi, kullanıcı müdahalesi gerekiyor.");
+                    });
+                }
+
                 checkNextPart(); // Yeni part yüklendiğinde bir sonraki partı kontrol et
             })
             .catch(() => {
@@ -148,7 +155,6 @@ function playEpisode(series, episode) {
             });
     }
 }
-
 
 function playMedia(movie) {
     const content = document.getElementById('content');
