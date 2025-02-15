@@ -1,4 +1,3 @@
-/* style.css */
 :root {
     --dark-blue: #0a192f;
     --neon-blue: #64ffda;
@@ -69,12 +68,6 @@ body {
     display: none;
 }
 
-#videoPlayer {
-    width: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
 /* Video.js Özel Tema */
 .video-js {
     border-radius: 10px;
@@ -90,5 +83,3 @@ body {
     border-color: var(--neon-blue) !important;
     color: var(--dark-bg) !important;
 }
-
-/* Diğer stiller öncekiyle aynı kalıyor... */

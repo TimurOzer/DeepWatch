@@ -1,11 +1,12 @@
-// app.js
 document.addEventListener('DOMContentLoaded', () => {
     const seriesData = {
         "Dark Series": {
             episodes: {
                 "1. Bölüm": { 
-                    parts: 3, 
-                    path: "series/dark-series/eps1/part" 
+                    parts: [
+                        "https://drive.google.com/uc?export=download&id=1ogH9qLTyu-CYMFbfzseLoOMOcxaXEhb_", // Part 0
+                        "https://drive.google.com/uc?export=download&id=1zGvUOvChmpqtKDWTCumJ3zktT_y4OFFN"  // Part 1
+                    ]
                 }
             }
         }
@@ -15,25 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPartIndex = 0;
     let videoPlayer;
 
-// Video player initialization
-const initVideoPlayer = () => {
-    if(videoPlayer) videoPlayer.dispose();
-    videoPlayer = videojs('videoPlayer', {
-        controls: true,
-        autoplay: false,
-        preload: 'auto',
-        responsive: true,
-        playbackRates: [0.5, 1, 1.5, 2],
-        userActions: {
-            hotkeys: true
-        }
-    });
-};
-
-    // GitHub Pages Path Correction
-    const getCorrectPath = (path) => {
-        const isGitHub = window.location.host.includes('github.io');
-        return isGitHub ? `/DeepWatch/${path}` : `/${path}`;
+    // Video Player Initialization
+    const initVideoPlayer = () => {
+        if(videoPlayer) videoPlayer.dispose();
+        videoPlayer = videojs('videoPlayer', {
+            controls: true,
+            autoplay: false,
+            preload: 'auto',
+            responsive: true,
+            playbackRates: [0.5, 1, 1.5, 2],
+            userActions: {
+                hotkeys: true
+            }
+        });
     };
 
     // Event Listeners
@@ -81,7 +76,7 @@ const initVideoPlayer = () => {
             
             episodeBtn.addEventListener('click', () => {
                 initVideoPlayer();
-                playEpisode(data.path, data.parts);
+                playEpisode(data.parts);
             });
 
             container.appendChild(episodeBtn);
@@ -89,41 +84,43 @@ const initVideoPlayer = () => {
     }
 
     // Play Episode
-    function playEpisode(basePath, totalParts) {
-        currentVideoParts = Array.from({length: totalParts}, (_, i) => 
-            getCorrectPath(`${basePath}${i}.mp4`)
-        );
-        
+    function playEpisode(parts) {
+        currentVideoParts = parts;
         currentPartIndex = 0;
         document.querySelector('.video-container').style.display = 'block';
         playNextPart();
     }
 
-// app.js içinde video yükleme fonksiyonunu güncelleyelim
-function playNextPart() {
-    if(currentPartIndex >= currentVideoParts.length) return;
+    // Play Next Part
+    function playNextPart() {
+        if(currentPartIndex >= currentVideoParts.length) {
+            videoPlayer.dispose();
+            return;
+        }
 
-    const videoUrl = currentVideoParts[currentPartIndex];
-    console.log('Loading:', videoUrl);
+        const videoUrl = currentVideoParts[currentPartIndex];
+        console.log('Loading:', videoUrl);
 
-    // Fetch API ile video yükleme
-    fetch(videoUrl)
-        .then(response => {
-            if(!response.ok) throw new Error('Network response was not ok');
-            return response.blob();
-        })
-        .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
-            videoPlayer.src({ 
-                src: blobUrl, 
-                type: 'video/mp4; codecs="avc1.64001e, mp4a.40.2"' 
-            });
-            return videoPlayer.play();
-        })
-        .catch(error => {
-            console.error('Video Load Error:', error);
-            alert('Video yüklenemedi: ' + error.message);
+        videoPlayer.src({
+            src: videoUrl,
+            type: 'video/mp4'
         });
-}
 
+        videoPlayer.ready(() => {
+            videoPlayer.play().catch(error => {
+                console.error('Playback Error:', error);
+                videoPlayer.bigPlayButton.show();
+            });
+        });
+
+        videoPlayer.on('ended', () => {
+            currentPartIndex++;
+            playNextPart();
+        });
+
+        videoPlayer.on('error', () => {
+            console.error('Video Error:', videoPlayer.error());
+            alert('Video yüklenirken hata oluştu: ' + videoPlayer.error().message);
+        });
+    }
 });
