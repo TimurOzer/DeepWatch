@@ -76,19 +76,20 @@ video {
 
 .header {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; /* Logo ve başlığı dikeyde ortalar */
+    justify-content: flex-start; /* Sola hizalar */
     margin-bottom: 20px;
 }
 
 .logo {
-    width: 50px; /* Logonun genişliği */
-    height: auto; /* Oranları korur */
-    margin-right: 10px; /* Başlık ile arasındaki boşluk */
+    width: 100px; /* Logonun genişliği */
+    height: 100px; /* Logonun yüksekliği */
+    margin-right: 15px; /* Logo ile başlık arasındaki boşluk */
 }
 
 h1 {
     color: #1e90ff;
     font-size: 3em;
     margin: 0; /* Başlık ile logo arasındaki boşluğu ayarlar */
+    line-height: 1; /* Başlık yüksekliğini ayarlar */
 }
