@@ -1,4 +1,4 @@
-// app.js (Güncellenmiş Versiyon)
+// app.js
 document.addEventListener('DOMContentLoaded', () => {
     const seriesData = {
         "Dark Series": {
@@ -15,27 +15,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPartIndex = 0;
     let videoPlayer;
 
+    // Video Player Initialization
     const initVideoPlayer = () => {
         videoPlayer = videojs('videoPlayer', {
             controls: true,
             autoplay: false,
             preload: 'auto',
             responsive: true,
-            playbackRates: [0.5, 1, 1.5, 2]
+            playbackRates: [0.5, 1, 1.5, 2],
+            userActions: {
+                hotkeys: true
+            }
         });
     };
 
-// Path düzenleme fonksiyonunu güncelleyelim
-const getCorrectPath = (path) => {
-    const isGitHub = window.location.host.includes('github.io');
-    const repoName = window.location.pathname.split('/')[1] || '';
-    return isGitHub 
-        ? `${window.location.origin}/${repoName}/${path}` 
-        : `${window.location.origin}/${path}`;
-};
+    // GitHub Pages Path Correction
+    const getCorrectPath = (path) => {
+        const isGitHub = window.location.host.includes('github.io');
+        return isGitHub ? `/DeepWatch/${path}` : `/${path}`;
+    };
 
+    // Event Listeners
     document.getElementById('series').addEventListener('click', showSeriesList);
 
+    // Show Series List
     function showSeriesList() {
         document.querySelector('.main-menu').style.display = 'none';
         document.getElementById('series-list').innerHTML = '';
@@ -47,6 +50,7 @@ const getCorrectPath = (path) => {
         });
     }
 
+    // Create Series Card
     function createSeriesCard(seriesName) {
         const seriesCard = document.createElement('div');
         seriesCard.className = 'series-card';
@@ -64,6 +68,7 @@ const getCorrectPath = (path) => {
         return seriesCard;
     }
 
+    // Load Episodes
     function loadEpisodes(seriesName, container) {
         container.innerHTML = '';
         const episodes = seriesData[seriesName].episodes;
@@ -82,6 +87,7 @@ const getCorrectPath = (path) => {
         });
     }
 
+    // Play Episode
     function playEpisode(basePath, totalParts) {
         currentVideoParts = Array.from({length: totalParts}, (_, i) => 
             getCorrectPath(`${basePath}${i}.mp4`)
@@ -92,21 +98,25 @@ const getCorrectPath = (path) => {
         playNextPart();
     }
 
+    // Play Next Part
     function playNextPart() {
         if(currentPartIndex >= currentVideoParts.length) {
             videoPlayer.dispose();
             return;
         }
 
+        const videoUrl = currentVideoParts[currentPartIndex];
+        console.log('Loading:', videoUrl);
+
         videoPlayer.src({
-            src: currentVideoParts[currentPartIndex],
+            src: videoUrl,
             type: 'video/mp4'
         });
 
         videoPlayer.ready(() => {
             videoPlayer.play().catch(error => {
+                console.error('Playback Error:', error);
                 videoPlayer.bigPlayButton.show();
-                console.log('Oynatma başlatılamadı:', error);
             });
         });
 
@@ -115,11 +125,9 @@ const getCorrectPath = (path) => {
             playNextPart();
         });
 
-// Hata durumunda bildirim ekleyelim
-videoPlayer.on('error', (e) => {
-    console.error('Video Player Error:', videoPlayer.error());
-    alert(`Video yüklenemedi: ${videoPlayer.error().message}`);
-});
-
+        videoPlayer.on('error', () => {
+            console.error('Video Error:', videoPlayer.error());
+            alert('Video yüklenirken hata oluştu: ' + videoPlayer.error().message);
+        });
     }
 });
