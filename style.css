@@ -74,3 +74,21 @@ body {
     border-radius: 10px;
     overflow: hidden;
 }
+
+/* Video.js Özel Tema */
+.video-js {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.vjs-control-bar {
+    background: rgba(10, 25, 47, 0.9) !important;
+}
+
+.vjs-big-play-button {
+    background: var(--neon-blue) !important;
+    border-color: var(--neon-blue) !important;
+    color: var(--dark-bg) !important;
+}
+
+/* Diğer stiller öncekiyle aynı kalıyor... */

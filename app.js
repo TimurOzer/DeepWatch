@@ -1,4 +1,4 @@
-// app.js (Güncel Versiyon)
+// app.js (Güncellenmiş Versiyon)
 document.addEventListener('DOMContentLoaded', () => {
     const seriesData = {
         "Dark Series": {
@@ -13,25 +13,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentVideoParts = [];
     let currentPartIndex = 0;
-    const videoPlayer = document.getElementById('videoPlayer');
-    const seriesList = document.getElementById('series-list');
+    let videoPlayer;
 
-    // GitHub Pages için Path Ayarları
-    const isGitHubPages = window.location.host.includes('github.io');
-    
-    document.getElementById('series').addEventListener('click', () => {
-        showSeriesList();
-    });
+    const initVideoPlayer = () => {
+        videoPlayer = videojs('videoPlayer', {
+            controls: true,
+            autoplay: false,
+            preload: 'auto',
+            responsive: true,
+            playbackRates: [0.5, 1, 1.5, 2]
+        });
+    };
+
+    // GitHub Pages Path Kontrolü
+    const getCorrectPath = (path) => {
+        const isGitHubPages = window.location.host.includes('github.io');
+        const repoName = window.location.pathname.split('/')[1];
+        return isGitHubPages ? `/${repoName}/${path}` : path;
+    };
+
+    document.getElementById('series').addEventListener('click', showSeriesList);
 
     function showSeriesList() {
         document.querySelector('.main-menu').style.display = 'none';
-        seriesList.innerHTML = '';
-        seriesList.style.display = 'block';
+        document.getElementById('series-list').innerHTML = '';
+        document.getElementById('series-list').style.display = 'block';
 
-        for(const seriesName in seriesData) {
+        Object.keys(seriesData).forEach(seriesName => {
             const seriesCard = createSeriesCard(seriesName);
-            seriesList.appendChild(seriesCard);
-        }
+            document.getElementById('series-list').appendChild(seriesCard);
+        });
     }
 
     function createSeriesCard(seriesName) {
@@ -42,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="episodes-list" style="display: none;"></div>
         `;
 
-        seriesCard.querySelector('h2').addEventListener('click', () => {
-            const episodesList = seriesCard.querySelector('.episodes-list');
+        seriesCard.querySelector('h2').addEventListener('click', function() {
+            const episodesList = this.nextElementSibling;
             episodesList.style.display = episodesList.style.display === 'none' ? 'block' : 'none';
             loadEpisodes(seriesName, episodesList);
         });
@@ -55,52 +66,51 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
         const episodes = seriesData[seriesName].episodes;
 
-        for(const [episodeName, data] of Object.entries(episodes)) {
+        Object.entries(episodes).forEach(([episodeName, data]) => {
             const episodeBtn = document.createElement('div');
             episodeBtn.className = 'menu-item';
             episodeBtn.textContent = episodeName;
             
             episodeBtn.addEventListener('click', () => {
+                initVideoPlayer();
                 playEpisode(data.path, data.parts);
             });
 
             container.appendChild(episodeBtn);
-        }
+        });
     }
 
     function playEpisode(basePath, totalParts) {
-        currentVideoParts = Array.from({length: totalParts}, (_, i) => {
-            let path = `${basePath}${i}.mp4`;
-            // GitHub Pages için özel path düzenlemesi
-            if(isGitHubPages) path = `/${path}`;
-            return path;
-        });
+        currentVideoParts = Array.from({length: totalParts}, (_, i) => 
+            getCorrectPath(`${basePath}${i}.mp4`)
+        );
         
         currentPartIndex = 0;
         document.querySelector('.video-container').style.display = 'block';
-        videoPlayer.controls = true;
         playNextPart();
     }
 
     function playNextPart() {
         if(currentPartIndex >= currentVideoParts.length) {
-            videoPlayer.style.display = 'none';
+            videoPlayer.dispose();
             return;
         }
 
-        videoPlayer.src = currentVideoParts[currentPartIndex];
-        videoPlayer.load();
-        
-        videoPlayer.addEventListener('canplay', () => {
-            videoPlayer.play().catch(error => {
-                console.log('Autoplay engellendi, kullanıcı etkileşimi bekleniyor');
-                videoPlayer.controls = true;
-            });
-        }, { once: true });
+        videoPlayer.src({
+            src: currentVideoParts[currentPartIndex],
+            type: 'video/mp4'
+        });
 
-        videoPlayer.onended = () => {
+        videoPlayer.ready(() => {
+            videoPlayer.play().catch(error => {
+                videoPlayer.bigPlayButton.show();
+                console.log('Oynatma başlatılamadı:', error);
+            });
+        });
+
+        videoPlayer.on('ended', () => {
             currentPartIndex++;
             playNextPart();
-        };
+        });
     }
 });
