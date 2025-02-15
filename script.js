@@ -90,11 +90,28 @@ function playEpisode(series, episode) {
 
     videoPlayer.style.display = 'none';
     loading.style.display = 'block';
+    nextPartBtn.disabled = true; // Başlangıçta buton pasif
 
     videoPlayer.addEventListener('loadeddata', () => {
         videoPlayer.style.display = 'block';
         loading.style.display = 'none';
     });
+
+    // Video bittiğinde bir sonraki partı yükle
+    videoPlayer.addEventListener('ended', () => {
+        if (currentPart < maxParts) {
+            currentPart++;
+            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
+        }
+    });
+
+    // "Next Part" butonuna tıklanırsa bir sonraki partı yükle
+    nextPartBtn.onclick = () => {
+        if (currentPart < maxParts) {
+            currentPart++;
+            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
+        }
+    };
 
     const loadNextPart = (nextPart) => {
         fetch(nextPart)
@@ -108,23 +125,12 @@ function playEpisode(series, episode) {
                 preloadedPart = videoURL;
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
+                nextPartBtn.disabled = false; // Butonu aktif yap
             })
             .catch(() => {
                 console.log('Bölüm sona erdi.');
-                nextPartBtn.disabled = true;
+                nextPartBtn.disabled = true; // Eğer part yoksa butonu pasif yap
             });
-    };
-
-    videoPlayer.addEventListener('ended', () => {
-        if (currentPart >= maxParts) return;
-        currentPart++;
-        loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
-    });
-
-    nextPartBtn.onclick = () => {
-        if (currentPart >= maxParts) return;
-        currentPart++;
-        loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
     };
 }
 
