@@ -73,3 +73,22 @@ video {
     height: auto;
     border-radius: 10px;
 }
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    width: 50px; /* Logonun genişliği */
+    height: auto; /* Oranları korur */
+    margin-right: 10px; /* Başlık ile arasındaki boşluk */
+}
+
+h1 {
+    color: #1e90ff;
+    font-size: 3em;
+    margin: 0; /* Başlık ile logo arasındaki boşluğu ayarlar */
+}
