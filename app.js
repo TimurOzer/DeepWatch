@@ -25,12 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // GitHub Pages Path Kontrolü
-    const getCorrectPath = (path) => {
-        const isGitHubPages = window.location.host.includes('github.io');
-        const repoName = window.location.pathname.split('/')[1];
-        return isGitHubPages ? `/${repoName}/${path}` : path;
-    };
+// Path düzenleme fonksiyonunu güncelleyelim
+const getCorrectPath = (path) => {
+    const isGitHub = window.location.host.includes('github.io');
+    const repoName = window.location.pathname.split('/')[1] || '';
+    return isGitHub 
+        ? `${window.location.origin}/${repoName}/${path}` 
+        : `${window.location.origin}/${path}`;
+};
 
     document.getElementById('series').addEventListener('click', showSeriesList);
 
@@ -112,5 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPartIndex++;
             playNextPart();
         });
+
+// Hata durumunda bildirim ekleyelim
+videoPlayer.on('error', (e) => {
+    console.error('Video Player Error:', videoPlayer.error());
+    alert(`Video yüklenemedi: ${videoPlayer.error().message}`);
+});
+
     }
 });
