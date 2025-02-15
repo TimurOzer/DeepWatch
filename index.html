@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DeepWatch</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepWatch</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>DeepWatch</h1>
-    <p>Bilinmezliğe doğru... (Koyu mavi ve siyah tonlarında temanız)</p>
-  </header>
-  
-  <main id="app">
-    <!-- Menü ve içerik buraya yüklenecek -->
-  </main>
-
-  <script src="script.js"></script>
+    <div class="container">
+        <h1>DeepWatch</h1>
+        <div class="menu">
+            <button onclick="showSeries()">Diziler</button>
+            <button onclick="showMovies()">Filmler</button>
+        </div>
+        <div id="content"></div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>

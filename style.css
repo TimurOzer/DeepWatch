@@ -1,61 +1,75 @@
-/* Genel ayarlar */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 body {
-  background: linear-gradient(135deg, #0a0a23, #000);
-  color: #fff;
-  min-height: 100vh;
+    background-color: #0a0a1a;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
 }
 
-/* Header */
-header {
-  text-align: center;
-  padding: 20px;
-  border-bottom: 1px solid #333;
+.container {
+    text-align: center;
 }
 
-header h1 {
-  font-size: 3em;
-  margin-bottom: 10px;
+h1 {
+    color: #1e90ff;
+    font-size: 3em;
+    margin-bottom: 20px;
 }
 
-/* Ana içerik alanı */
-#app {
-  padding: 20px;
+.menu button {
+    background-color: #1e90ff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
-/* Menü butonları */
-.button {
-  background-color: #1e3a5f;
-  border: none;
-  padding: 15px 25px;
-  margin: 10px;
-  color: #fff;
-  font-size: 1.1em;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+.menu button:hover {
+    background-color: #004080;
 }
 
-.button:hover {
-  background-color: #275082;
+#content {
+    margin-top: 20px;
 }
 
-/* Video oynatıcı */
-.video-container {
-  max-width: 800px;
-  margin: 20px auto;
-  text-align: center;
+.episode-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.episode-list button {
+    background-color: #1e90ff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.episode-list button:hover {
+    background-color: #004080;
+}
+
+.video-player {
+    margin-top: 20px;
 }
 
 video {
-  width: 100%;
-  max-height: 450px;
-  border: 2px solid #1e3a5f;
-  border-radius: 5px;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    border-radius: 10px;
 }
