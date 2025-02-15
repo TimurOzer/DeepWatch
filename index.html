@@ -7,17 +7,19 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <img src="assets/logo.png" alt="DeepWatch Logo" class="logo">
-        <h1>DeepWatch</h1>
+    <div class="container">
+        <div class="header">
+            <img src="assets/logo.png" alt="DeepWatch Logo" class="logo">
+            <h1>DeepWatch</h1>
+        </div>
+        
+        <div class="main-menu">
+            <button class="tab-btn active" onclick="showContent('series')">Diziler</button>
+            <button class="tab-btn" onclick="showContent('movies')">Filmler</button>
+        </div>
+
+        <div id="content" class="content-grid"></div>
     </div>
-    <div class="menu">
-        <button onclick="showSeries()">Diziler</button>
-        <button onclick="showMovies()">Filmler</button>
-    </div>
-    <div id="content"></div>
-</div>
     <script src="script.js"></script>
 </body>
 </html>

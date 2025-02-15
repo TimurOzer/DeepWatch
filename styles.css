@@ -1,89 +1,116 @@
 body {
     background-color: #0a0a1a;
     color: #ffffff;
-    font-family: Audiowide, sans-serif;
+    font-family: 'Audiowide', sans-serif;
     margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    flex-direction: column;
+    padding: 20px;
+    min-height: 100vh;
 }
 
 .container {
-    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .header {
     display: flex;
-    align-items: center; /* Logo ve başlığı dikeyde ortalar */
-    justify-content: center; /* Ortalar */
-    margin-bottom: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
 }
 
 .logo {
-    width: 200px; /* Logonun genişliği */
-    height: 200px; /* Logonun yüksekliği */
-    margin-right: 20px; /* Logo ile başlık arasındaki boşluk */
+    width: 200px;
+    height: 200px;
+    margin-right: 20px;
 }
 
 h1 {
     color: #1e90ff;
-    font-size: 4em; /* Başlık boyutu */
-    margin: 0; /* Başlık ile logo arasındaki boşluğu ayarlar */
-    line-height: 1; /* Başlık yüksekliğini ayarlar */
+    font-size: 4em;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(30, 144, 255, 0.5);
 }
 
-.menu button {
-    background-color: #1e90ff;
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    margin: 5px;
+.main-menu {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.tab-btn {
+    background: none;
+    border: 2px solid #1e90ff;
+    color: #1e90ff;
+    padding: 12px 30px;
+    margin: 0 10px;
+    font-size: 1.3em;
+    border-radius: 25px;
     cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn.active,
+.tab-btn:hover {
+    background: #1e90ff;
+    color: #0a0a1a;
+    box-shadow: 0 0 15px rgba(30, 144, 255, 0.5);
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 20px;
+}
+
+.media-card {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.media-card:hover {
+    transform: scale(1.05);
+}
+
+.media-card img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.media-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+}
+
+.media-title {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    z-index: 1;
     font-size: 1.2em;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
 }
 
-.menu button:hover {
-    background-color: #004080;
-}
-
-#content {
-    margin-top: 20px;
-}
-
-.episode-list {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.episode-list button {
-    background-color: #1e90ff;
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    margin: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.episode-list button:hover {
-    background-color: #004080;
-}
-
+/* Video Player Stilleri */
 .video-player {
-    margin-top: 20px;
+    margin-top: 30px;
+    text-align: center;
 }
 
 video {
     width: 100%;
-    max-width: 800px;
-    height: auto;
-    border-radius: 10px;
+    max-width: 1000px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(30, 144, 255, 0.3);
 }
