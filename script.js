@@ -89,7 +89,7 @@ function playEpisode(eps) {
 function loadVideoPart(videoPlayer, eps) {
   const part = videoParts[currentVideoIndex];
   // Dosya yolu: /Series/HOTD/eps1/part0.mp4 gibi
-  const videoPath = `Series/HOTD/${eps}/part${part}.mp4`;
+const videoPath = `https://timurozer.github.io/DeepWatch/Series/HOTD/${eps}/part${part}.mp4`;
   videoPlayer.src = videoPath;
   videoPlayer.load();
   videoPlayer.play().catch((error) => {
