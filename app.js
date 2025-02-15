@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // GitHub'daki raw dosya linklerini kullanarak verileri yapılandırıyoruz
+  // Videoları barındırdığınız GitHub raw linklerini kullanın.
   const seriesData = {
     "Dark Series": {
       episodes: {
         "1. Bölüm": { 
           parts: [
             "https://raw.githubusercontent.com/TimurOzer/DeepWatch/main/series/dark-series/eps1/part0.mp4",
-            "https://raw.githubusercontent.com/TimurOzer/DeepWatch/main/series/dark-series/eps1/part1.mp4",
-            // Parça sayısına göre ekleyin...
+            "https://raw.githubusercontent.com/TimurOzer/DeepWatch/main/series/dark-series/eps1/part1.mp4"
+            // Diğer parçaları ekleyin...
           ]
         }
       }
@@ -16,32 +16,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentVideoParts = [];
   let currentPartIndex = 0;
-let videoPlayer;
+  const videoPlayer = document.getElementById('videoPlayer');
 
-const initVideoPlayer = () => {
-  if (!videoPlayer) {
-    videoPlayer = videojs('videoPlayer', {
-      controls: true,
-      autoplay: false,
-      preload: 'auto',
-      responsive: true,
-      playbackRates: [0.5, 1, 1.5, 2],
-      userActions: {
-        hotkeys: true
-      }
+  // Parça bittiğinde sıradaki parçayı oynat
+  videoPlayer.addEventListener('ended', () => {
+    currentPartIndex++;
+    if (currentPartIndex < currentVideoParts.length) {
+      playCurrentPart();
+    } else {
+      alert("Bölüm tamamlandı!");
+    }
+  });
+
+  // Mevcut parçayı oynatır
+  function playCurrentPart() {
+    videoPlayer.src = currentVideoParts[currentPartIndex];
+    videoPlayer.load();
+    videoPlayer.play().catch(err => {
+      console.error("Oynatma Hatası:", err);
     });
-  } else {
-    // Eğer player zaten oluşturulmuşsa, durdurup başlangıca döndürün.
-    videoPlayer.pause();
-    videoPlayer.currentTime(0);
   }
-};
-
 
   // Ana menü elemanlarına tıklama dinleyicileri
   document.getElementById('series').addEventListener('click', showSeriesList);
-  // İsterseniz movies için de benzer bir yapı oluşturabilirsiniz
-  // document.getElementById('movies').addEventListener('click', showMoviesList);
+  // Filmler için de benzer yapı kurulabilir.
 
   // Dizileri listele
   function showSeriesList() {
@@ -50,10 +48,10 @@ const initVideoPlayer = () => {
     seriesListContainer.innerHTML = '';
     seriesListContainer.style.display = 'block';
 
-    Object.keys(seriesData).forEach(seriesName => {
+    for (const seriesName in seriesData) {
       const seriesCard = createSeriesCard(seriesName);
       seriesListContainer.appendChild(seriesCard);
-    });
+    }
   }
 
   // Dizi kartı oluşturma
@@ -79,60 +77,19 @@ const initVideoPlayer = () => {
     container.innerHTML = '';
     const episodes = seriesData[seriesName].episodes;
 
-    Object.entries(episodes).forEach(([episodeName, data]) => {
+    for (const episodeName in episodes) {
       const episodeBtn = document.createElement('div');
       episodeBtn.className = 'menu-item';
       episodeBtn.textContent = episodeName;
       
       episodeBtn.addEventListener('click', () => {
-        initVideoPlayer();
-        playEpisode(data.parts);
+        currentVideoParts = episodes[episodeName].parts;
+        currentPartIndex = 0;
+        document.querySelector('.video-container').style.display = 'block';
+        playCurrentPart();
       });
 
       container.appendChild(episodeBtn);
-    });
-  }
-
-  // Bölümü oynatma: parça dizisini alıp sırayla oynatır
-  function playEpisode(parts) {
-    currentVideoParts = parts;
-    currentPartIndex = 0;
-    document.querySelector('.video-container').style.display = 'block';
-    playNextPart();
-  }
-
-  // Sıradaki parçayı oynatma
-  function playNextPart() {
-    if(currentPartIndex >= currentVideoParts.length) {
-      videoPlayer.dispose();
-      alert("Bölüm tamamlandı!");
-      return;
     }
-
-    const videoUrl = currentVideoParts[currentPartIndex];
-    console.log('Yükleniyor:', videoUrl);
-
-    videoPlayer.src({
-      src: videoUrl,
-      type: 'video/mp4'
-    });
-
-    videoPlayer.ready(() => {
-      videoPlayer.play().catch(error => {
-        console.error('Oynatma Hatası:', error);
-        videoPlayer.bigPlayButton.show();
-      });
-    });
-
-    // 'one' kullanarak sadece bir kere tetiklenmesini sağlıyoruz
-    videoPlayer.one('ended', () => {
-      currentPartIndex++;
-      playNextPart();
-    });
-
-    videoPlayer.one('error', () => {
-      console.error('Video Hatası:', videoPlayer.error());
-      alert('Video yüklenirken hata oluştu: ' + videoPlayer.error().message);
-    });
   }
 });
