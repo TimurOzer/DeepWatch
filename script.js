@@ -84,35 +84,44 @@ function playEpisode(series, episode) {
     const nextPartBtn = document.getElementById('nextPartBtn');
     let currentPart = 0;
 
-    // "Next Part" butonuna tıklanırsa
-    nextPartBtn.onclick = () => {
-        currentPart++;
-        const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
-        fetch(nextPart)
-            .then(response => response.ok ? (videoPlayer.src = nextPart, videoPlayer.play()) : null)
-            .catch(() => console.log('Bölüm sona erdi.'));
-    };
-
+    // Önceden yükleme için video parçasını önceden başlat
+    let preloadedPart = null;
+    
     // Video bittiğinde otomatik geçiş için
     videoPlayer.addEventListener('ended', () => {
         currentPart++;
         const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
         
-        // Önceden yükleme (preload) başlat
-        fetch(nextPart)
-            .then(response => response.ok ? response.blob() : null)
-            .then(blob => {
-                // Videoyu önceden yükledik, geçişi hızlandırmak için hemen oynat
-                if (blob) {
-                    const videoURL = URL.createObjectURL(blob);
-                    videoPlayer.src = videoURL;
-                    videoPlayer.play();
-                } else {
-                    console.log('Part yüklenemedi.');
-                }
-            })
-            .catch(() => console.log('Bölüm sona erdi.'));
+        // Eğer parça önceden yüklendiyse, hemen oynat
+        if (preloadedPart) {
+            videoPlayer.src = preloadedPart;
+            videoPlayer.play();
+        } else {
+            // Önceki parça yüklenene kadar bekle
+            preloadNextPart(nextPart, videoPlayer);
+        }
     });
+
+    // "Next Part" butonuna tıklanırsa
+    nextPartBtn.onclick = () => {
+        currentPart++;
+        const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
+        preloadNextPart(nextPart, videoPlayer);
+    };
+    
+    // Yeni video parçasını yükle ve hazır olmasını bekle
+    function preloadNextPart(nextPart, videoPlayer) {
+        fetch(nextPart)
+            .then(response => response.blob())
+            .then(blob => {
+                // Video parçası yüklendi, hemen oynat
+                const videoURL = URL.createObjectURL(blob);
+                preloadedPart = videoURL;  // Önceden yüklenen parça
+                videoPlayer.src = videoURL;
+                videoPlayer.play();
+            })
+            .catch(() => console.log('Part yüklenemedi.'));
+    }
 }
 
 function playMedia(movie) {
