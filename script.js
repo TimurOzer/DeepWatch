@@ -97,8 +97,9 @@ function playEpisode(series, episode) {
     const nextPartProgress = document.getElementById('nextPartProgress');
     const nextPartLoadText = document.getElementById('nextPartLoadText');
 
-    let currentPart = 0;      // Şu anda oynatılan part numarası
-    let nextVideoURL = null;  // Önceden preload edilmiş sonraki part URL'si
+    let currentPart = 0;        // Şu anda oynatılan part numarası
+    let nextVideoURL = null;    // Bir sonraki part için önceden yüklenmiş video URL'si
+    let isPreloading = false;   // Preload işlemi devam ediyorsa true
 
     videoPlayer.style.display = 'none';
     loading.style.display = 'block';
@@ -106,7 +107,6 @@ function playEpisode(series, episode) {
     videoPlayer.addEventListener('loadeddata', () => {
         videoPlayer.style.display = 'block';
         loading.style.display = 'none';
-        // Parça yüklendiğinde, sıradaki partı kontrol edip preload etmeye başlıyoruz
         checkNextPart();
     });
 
@@ -134,7 +134,8 @@ function playEpisode(series, episode) {
                 console.log("🔴 Otomatik oynatma engellendi, lütfen 'Next Part'a tıklayın.");
             });
             nextVideoURL = null;
-            checkNextPart(); // Yeni part preload edilsin
+            // Yeni part oynandıktan sonra sonraki preload'i başlat
+            checkNextPart();
         }
     });
 
@@ -157,13 +158,21 @@ function playEpisode(series, episode) {
         }
     };
 
-    // Sıradaki partın varlığını HEAD isteğiyle kontrol ediyoruz
+    // Sonraki partın varlığını kontrol edip preload başlatıyoruz (aynı part için iki kez preload yapmasın)
     function checkNextPart() {
-        let nextPartPath = `series/${series}/${episode}/part${currentPart + 1}.webm`;
+        const nextPartPath = `series/${series}/${episode}/part${currentPart + 1}.webm`;
+        // Eğer zaten preload edilmiş veya preload devam ediyorsa, yeni başlatmayalım.
+        if (nextVideoURL || isPreloading) {
+            return;
+        }
+        // İlerleme çubuğunu sıfırla
+        nextPartProgress.value = 0;
+        nextPartLoadText.textContent = "0%";
+
         fetch(nextPartPath, { method: 'HEAD' })
             .then(response => {
                 if (response.ok) {
-                    nextPartBtn.style.display = 'none'; // Şimdilik gizle, preload bittikten sonra gösterilecek
+                    isPreloading = true;
                     preloadNextPart(nextPartPath);
                 } else {
                     nextPartBtn.style.display = 'none';
@@ -174,7 +183,7 @@ function playEpisode(series, episode) {
             });
     }
 
-    // Belirtilen URL'deki veriyi tamamen okuyarak Blob oluşturup video URL'sine çeviriyoruz
+    // Belirtilen URL'deki veriyi tamamen okuyup Blob oluşturup video URL'sine çeviriyoruz
     function preloadNextPart(url) {
         fetch(url)
             .then(response => {
@@ -206,17 +215,17 @@ function playEpisode(series, episode) {
             .then(blob => {
                 nextVideoURL = URL.createObjectURL(blob);
                 console.log("Sonraki part tamamen yüklendi:", url);
-                // Sadece %100 yüklendiyse buton görünür olsun
                 nextPartBtn.style.display = "inline-block";
+                isPreloading = false;
             })
             .catch(() => {
                 nextPartProgress.value = 0;
                 nextPartLoadText.textContent = "Yüklenemedi";
                 nextPartBtn.style.display = "none";
+                isPreloading = false;
             });
     }
 }
-
 
 function playMedia(movie) {
     const content = document.getElementById('content');
