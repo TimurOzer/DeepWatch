@@ -1,45 +1,45 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>DeepWatch</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <!-- Video.js Kütüphanesi -->
-    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <title>DeepWatch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <!-- Video.js Kütüphanesi -->
+  <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 </head>
 <body>
-    <div class="container">
-        <h1 class="logo">DeepWatch</h1>
-        
-        <!-- Ana Menü -->
-        <div class="main-menu">
-            <div class="menu-item" id="movies">Filmler</div>
-            <div class="menu-item" id="series">Diziler</div>
-        </div>
-
-        <!-- Dizi Listesi -->
-        <div class="content-section" id="series-list"></div>
-
-        <!-- Gelişmiş Video Player -->
-        <div class="video-container">
-            <video 
-                id="videoPlayer" 
-                class="video-js vjs-big-play-centered"
-                controls 
-                preload="auto"
-                width="800" 
-                height="450"
-                data-setup='{"fluid": true}'>
-                <p class="vjs-no-js">
-                    Tarayıcınız JavaScript desteklemiyor veya video formatını oynatamıyor.
-                </p>
-            </video>
-        </div>
+  <div class="container">
+    <h1 class="logo">DeepWatch</h1>
+    
+    <!-- Ana Menü -->
+    <div class="main-menu">
+      <div class="menu-item" id="movies">Filmler</div>
+      <div class="menu-item" id="series">Diziler</div>
     </div>
 
-    <!-- Video.js Script -->
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-    <script src="app.js"></script>
+    <!-- Dizi Listesi -->
+    <div class="content-section" id="series-list"></div>
+
+    <!-- Video Player -->
+    <div class="video-container">
+      <video 
+        id="videoPlayer" 
+        class="video-js vjs-big-play-centered"
+        controls 
+        preload="auto"
+        width="800" 
+        height="450"
+        data-setup='{"fluid": true}'>
+        <p class="vjs-no-js">
+          Tarayıcınız JavaScript desteklemiyor veya video formatını oynatamıyor.
+        </p>
+      </video>
+    </div>
+  </div>
+
+  <!-- Video.js Script -->
+  <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

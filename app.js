@@ -1,126 +1,135 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const seriesData = {
-        "Dark Series": {
-            episodes: {
-                "1. Bölüm": { 
-                    parts: [
-                        "https://drive.google.com/file/d/1ogH9qLTyu-CYMFbfzseLoOMOcxaXEhb_/view", // Part 0
-                        "https://drive.google.com/file/d/1zGvUOvChmpqtKDWTCumJ3zktT_y4OFFN/view"  // Part 1
-                    ]
-                }
-            }
+  // GitHub'daki raw dosya linklerini kullanarak verileri yapılandırıyoruz
+  const seriesData = {
+    "Dark Series": {
+      episodes: {
+        "1. Bölüm": { 
+          parts: [
+            "https://raw.githubusercontent.com/TimurOzer/DeepWatch/main/series/dark-series/eps1/part0.mp4",
+            "https://raw.githubusercontent.com/TimurOzer/DeepWatch/main/series/dark-series/eps1/part1.mp4",
+            // Parça sayısına göre ekleyin...
+          ]
         }
-    };
+      }
+    }
+  };
 
-    let currentVideoParts = [];
-    let currentPartIndex = 0;
-    let videoPlayer;
+  let currentVideoParts = [];
+  let currentPartIndex = 0;
+  let videoPlayer;
 
-    // Video Player Initialization
-    const initVideoPlayer = () => {
-        if(videoPlayer) videoPlayer.dispose();
-        videoPlayer = videojs('videoPlayer', {
-            controls: true,
-            autoplay: false,
-            preload: 'auto',
-            responsive: true,
-            playbackRates: [0.5, 1, 1.5, 2],
-            userActions: {
-                hotkeys: true
-            }
-        });
-    };
+  // Video Player'ı başlatma
+  const initVideoPlayer = () => {
+    if(videoPlayer) {
+      videoPlayer.dispose();
+    }
+    videoPlayer = videojs('videoPlayer', {
+      controls: true,
+      autoplay: false,
+      preload: 'auto',
+      responsive: true,
+      playbackRates: [0.5, 1, 1.5, 2],
+      userActions: {
+        hotkeys: true
+      }
+    });
+  };
 
-    // Event Listeners
-    document.getElementById('series').addEventListener('click', showSeriesList);
+  // Ana menü elemanlarına tıklama dinleyicileri
+  document.getElementById('series').addEventListener('click', showSeriesList);
+  // İsterseniz movies için de benzer bir yapı oluşturabilirsiniz
+  // document.getElementById('movies').addEventListener('click', showMoviesList);
 
-    // Show Series List
-    function showSeriesList() {
-        document.querySelector('.main-menu').style.display = 'none';
-        document.getElementById('series-list').innerHTML = '';
-        document.getElementById('series-list').style.display = 'block';
+  // Dizileri listele
+  function showSeriesList() {
+    document.querySelector('.main-menu').style.display = 'none';
+    const seriesListContainer = document.getElementById('series-list');
+    seriesListContainer.innerHTML = '';
+    seriesListContainer.style.display = 'block';
 
-        Object.keys(seriesData).forEach(seriesName => {
-            const seriesCard = createSeriesCard(seriesName);
-            document.getElementById('series-list').appendChild(seriesCard);
-        });
+    Object.keys(seriesData).forEach(seriesName => {
+      const seriesCard = createSeriesCard(seriesName);
+      seriesListContainer.appendChild(seriesCard);
+    });
+  }
+
+  // Dizi kartı oluşturma
+  function createSeriesCard(seriesName) {
+    const seriesCard = document.createElement('div');
+    seriesCard.className = 'series-card';
+    seriesCard.innerHTML = `
+      <h2>${seriesName}</h2>
+      <div class="episodes-list" style="display: none;"></div>
+    `;
+
+    seriesCard.querySelector('h2').addEventListener('click', function() {
+      const episodesList = this.nextElementSibling;
+      episodesList.style.display = episodesList.style.display === 'none' ? 'block' : 'none';
+      loadEpisodes(seriesName, episodesList);
+    });
+
+    return seriesCard;
+  }
+
+  // Bölümleri yükleme
+  function loadEpisodes(seriesName, container) {
+    container.innerHTML = '';
+    const episodes = seriesData[seriesName].episodes;
+
+    Object.entries(episodes).forEach(([episodeName, data]) => {
+      const episodeBtn = document.createElement('div');
+      episodeBtn.className = 'menu-item';
+      episodeBtn.textContent = episodeName;
+      
+      episodeBtn.addEventListener('click', () => {
+        initVideoPlayer();
+        playEpisode(data.parts);
+      });
+
+      container.appendChild(episodeBtn);
+    });
+  }
+
+  // Bölümü oynatma: parça dizisini alıp sırayla oynatır
+  function playEpisode(parts) {
+    currentVideoParts = parts;
+    currentPartIndex = 0;
+    document.querySelector('.video-container').style.display = 'block';
+    playNextPart();
+  }
+
+  // Sıradaki parçayı oynatma
+  function playNextPart() {
+    if(currentPartIndex >= currentVideoParts.length) {
+      videoPlayer.dispose();
+      alert("Bölüm tamamlandı!");
+      return;
     }
 
-    // Create Series Card
-    function createSeriesCard(seriesName) {
-        const seriesCard = document.createElement('div');
-        seriesCard.className = 'series-card';
-        seriesCard.innerHTML = `
-            <h2>${seriesName}</h2>
-            <div class="episodes-list" style="display: none;"></div>
-        `;
+    const videoUrl = currentVideoParts[currentPartIndex];
+    console.log('Yükleniyor:', videoUrl);
 
-        seriesCard.querySelector('h2').addEventListener('click', function() {
-            const episodesList = this.nextElementSibling;
-            episodesList.style.display = episodesList.style.display === 'none' ? 'block' : 'none';
-            loadEpisodes(seriesName, episodesList);
-        });
+    videoPlayer.src({
+      src: videoUrl,
+      type: 'video/mp4'
+    });
 
-        return seriesCard;
-    }
+    videoPlayer.ready(() => {
+      videoPlayer.play().catch(error => {
+        console.error('Oynatma Hatası:', error);
+        videoPlayer.bigPlayButton.show();
+      });
+    });
 
-    // Load Episodes
-    function loadEpisodes(seriesName, container) {
-        container.innerHTML = '';
-        const episodes = seriesData[seriesName].episodes;
+    // 'one' kullanarak sadece bir kere tetiklenmesini sağlıyoruz
+    videoPlayer.one('ended', () => {
+      currentPartIndex++;
+      playNextPart();
+    });
 
-        Object.entries(episodes).forEach(([episodeName, data]) => {
-            const episodeBtn = document.createElement('div');
-            episodeBtn.className = 'menu-item';
-            episodeBtn.textContent = episodeName;
-            
-            episodeBtn.addEventListener('click', () => {
-                initVideoPlayer();
-                playEpisode(data.parts);
-            });
-
-            container.appendChild(episodeBtn);
-        });
-    }
-
-    // Play Episode
-    function playEpisode(parts) {
-        currentVideoParts = parts;
-        currentPartIndex = 0;
-        document.querySelector('.video-container').style.display = 'block';
-        playNextPart();
-    }
-
-    // Play Next Part
-    function playNextPart() {
-        if(currentPartIndex >= currentVideoParts.length) {
-            videoPlayer.dispose();
-            return;
-        }
-
-        const videoUrl = currentVideoParts[currentPartIndex];
-        console.log('Loading:', videoUrl);
-
-        videoPlayer.src({
-            src: videoUrl,
-            type: 'video/mp4'
-        });
-
-        videoPlayer.ready(() => {
-            videoPlayer.play().catch(error => {
-                console.error('Playback Error:', error);
-                videoPlayer.bigPlayButton.show();
-            });
-        });
-
-        videoPlayer.on('ended', () => {
-            currentPartIndex++;
-            playNextPart();
-        });
-
-        videoPlayer.on('error', () => {
-            console.error('Video Error:', videoPlayer.error());
-            alert('Video yüklenirken hata oluştu: ' + videoPlayer.error().message);
-        });
-    }
+    videoPlayer.one('error', () => {
+      console.error('Video Hatası:', videoPlayer.error());
+      alert('Video yüklenirken hata oluştu: ' + videoPlayer.error().message);
+    });
+  }
 });
