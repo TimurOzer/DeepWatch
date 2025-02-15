@@ -76,18 +76,41 @@ function playEpisode(series, episode) {
             <video id="videoPlayer" controls>
                 <source src="series/${series}/${episode}/part0.webm" type="video/webm">
             </video>
+            <button id="nextPartBtn">Next Part ➡️</button>
         </div>
     `;
-
-    // Video Otomatik Oynatma ve Part Geçişi
+    
     const videoPlayer = document.getElementById('videoPlayer');
+    const nextPartBtn = document.getElementById('nextPartBtn');
     let currentPart = 0;
 
-    videoPlayer.addEventListener('ended', () => {
+    // "Next Part" butonuna tıklanırsa
+    nextPartBtn.onclick = () => {
         currentPart++;
         const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
         fetch(nextPart)
             .then(response => response.ok ? (videoPlayer.src = nextPart, videoPlayer.play()) : null)
+            .catch(() => console.log('Bölüm sona erdi.'));
+    };
+
+    // Video bittiğinde otomatik geçiş için
+    videoPlayer.addEventListener('ended', () => {
+        currentPart++;
+        const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
+        
+        // Önceden yükleme (preload) başlat
+        fetch(nextPart)
+            .then(response => response.ok ? response.blob() : null)
+            .then(blob => {
+                // Videoyu önceden yükledik, geçişi hızlandırmak için hemen oynat
+                if (blob) {
+                    const videoURL = URL.createObjectURL(blob);
+                    videoPlayer.src = videoURL;
+                    videoPlayer.play();
+                } else {
+                    console.log('Part yüklenemedi.');
+                }
+            })
             .catch(() => console.log('Bölüm sona erdi.'));
     });
 }
