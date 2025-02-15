@@ -77,6 +77,14 @@ function playEpisode(series, episode) {
             <video id="videoPlayer" controls>
                 <source src="series/${series}/${episode}/part0.webm" type="video/webm">
             </video>
+            <div class="progress-container">
+                <p>Video Yükleme: <span id="videoLoadText">0%</span></p>
+                <progress id="videoProgress" value="0" max="100"></progress>
+            </div>
+            <div class="progress-container">
+                <p>Sonraki Part Yükleme: <span id="nextPartLoadText">0%</span></p>
+                <progress id="nextPartProgress" value="0" max="100"></progress>
+            </div>
             <button id="nextPartBtn" style="display: none;">Next Part ➡️</button>
         </div>
     `;
@@ -84,8 +92,13 @@ function playEpisode(series, episode) {
     const videoPlayer = document.getElementById('videoPlayer');
     const nextPartBtn = document.getElementById('nextPartBtn');
     const loading = document.getElementById('loading');
+    const videoProgress = document.getElementById('videoProgress');
+    const videoLoadText = document.getElementById('videoLoadText');
+    const nextPartProgress = document.getElementById('nextPartProgress');
+    const nextPartLoadText = document.getElementById('nextPartLoadText');
+
     let currentPart = 0;
-    const maxParts = 3; // Örnek: 4 part (0-3)
+    const maxParts = 3;
     let preloadedPart = null;
 
     videoPlayer.style.display = 'none';
@@ -94,7 +107,20 @@ function playEpisode(series, episode) {
     videoPlayer.addEventListener('loadeddata', () => {
         videoPlayer.style.display = 'block';
         loading.style.display = 'none';
-        checkNextPart(); // İlk part yüklendiğinde bir sonraki part olup olmadığını kontrol et
+        checkNextPart();
+    });
+
+    // Video yüklenme ilerlemesi
+    videoPlayer.addEventListener('progress', () => {
+        if (videoPlayer.buffered.length > 0) {
+            const loaded = videoPlayer.buffered.end(0);
+            const total = videoPlayer.duration;
+            if (total > 0) {
+                const percent = Math.round((loaded / total) * 100);
+                videoProgress.value = percent;
+                videoLoadText.textContent = percent + "%";
+            }
+        }
     });
 
     // Video bittiğinde otomatik olarak sonraki partı yüklemeye çalış
@@ -105,7 +131,6 @@ function playEpisode(series, episode) {
         }
     });
 
-    // "Next Part" butonuna tıklanınca sonraki partı yükle
     nextPartBtn.onclick = () => {
         if (currentPart < maxParts) {
             currentPart++;
@@ -125,36 +150,71 @@ function playEpisode(series, episode) {
                 preloadedPart = videoURL;
                 videoPlayer.src = videoURL;
 
-                // Kullanıcı etkileşimi olmadan otomatik oynatma başarısız olursa, bir alternatif sun
                 if (playImmediately) {
                     videoPlayer.play().catch(() => {
-                        console.log("Tarayıcı otomatik oynatmayı engelledi, kullanıcı müdahalesi gerekiyor.");
+                        console.log("Tarayıcı otomatik oynatmayı engelledi.");
                     });
                 }
 
-                checkNextPart(); // Yeni part yüklendiğinde bir sonraki partı kontrol et
+                checkNextPart();
             })
             .catch(() => {
                 console.log('Bölüm sona erdi.');
-                nextPartBtn.style.display = 'none'; // Eğer part yoksa butonu gizle
+                nextPartBtn.style.display = 'none';
             });
     }
 
     function checkNextPart() {
         let nextPartPath = `series/${series}/${episode}/part${currentPart + 1}.webm`;
-        fetch(nextPartPath, { method: 'HEAD' }) // Sadece var mı diye kontrol eder, gereksiz veri indirmez
+        fetch(nextPartPath, { method: 'HEAD' }) // Sonraki part var mı kontrol et
             .then(response => {
                 if (response.ok) {
-                    nextPartBtn.style.display = 'inline-block'; // Sonraki part varsa butonu göster
+                    nextPartBtn.style.display = 'inline-block';
+                    preloadNextPart(nextPartPath);
                 } else {
-                    nextPartBtn.style.display = 'none'; // Sonraki part yoksa butonu gizle
+                    nextPartBtn.style.display = 'none';
                 }
             })
             .catch(() => {
-                nextPartBtn.style.display = 'none'; // Hata alırsa butonu gizle
+                nextPartBtn.style.display = 'none';
+            });
+    }
+
+    function preloadNextPart(nextPartPath) {
+        fetch(nextPartPath)
+            .then(response => {
+                if (!response.ok) throw new Error('Sonraki part yüklenemedi');
+                const reader = response.body.getReader();
+                let receivedLength = 0;
+                let totalLength = response.headers.get('Content-Length');
+
+                return new ReadableStream({
+                    start(controller) {
+                        function push() {
+                            reader.read().then(({ done, value }) => {
+                                if (done) {
+                                    controller.close();
+                                    return;
+                                }
+                                receivedLength += value.length;
+                                const percent = Math.round((receivedLength / totalLength) * 100);
+                                nextPartProgress.value = percent;
+                                nextPartLoadText.textContent = percent + "%";
+                                controller.enqueue(value);
+                                push();
+                            });
+                        }
+                        push();
+                    }
+                });
+            })
+            .catch(() => {
+                nextPartProgress.value = 0;
+                nextPartLoadText.textContent = "Yüklenemedi";
             });
     }
 }
+
 
 function playMedia(movie) {
     const content = document.getElementById('content');
