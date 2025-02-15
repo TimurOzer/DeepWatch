@@ -77,7 +77,7 @@ function playEpisode(series, episode) {
             <video id="videoPlayer" controls>
                 <source src="series/${series}/${episode}/part0.webm" type="video/webm">
             </video>
-            <button id="nextPartBtn">Next Part ➡️</button>
+            <button id="nextPartBtn" style="display: none;">Next Part ➡️</button>
         </div>
     `;
     
@@ -90,14 +90,13 @@ function playEpisode(series, episode) {
 
     videoPlayer.style.display = 'none';
     loading.style.display = 'block';
-    nextPartBtn.disabled = true; // Başlangıçta buton pasif
 
     videoPlayer.addEventListener('loadeddata', () => {
         videoPlayer.style.display = 'block';
         loading.style.display = 'none';
     });
 
-    // Video bittiğinde bir sonraki partı yükle
+    // Video bittiğinde otomatik olarak sonraki partı yüklemeye çalış
     videoPlayer.addEventListener('ended', () => {
         if (currentPart < maxParts) {
             currentPart++;
@@ -105,7 +104,7 @@ function playEpisode(series, episode) {
         }
     });
 
-    // "Next Part" butonuna tıklanırsa bir sonraki partı yükle
+    // "Next Part" butonuna tıklanınca sonraki partı yükle
     nextPartBtn.onclick = () => {
         if (currentPart < maxParts) {
             currentPart++;
@@ -125,11 +124,11 @@ function playEpisode(series, episode) {
                 preloadedPart = videoURL;
                 videoPlayer.src = videoURL;
                 videoPlayer.play();
-                nextPartBtn.disabled = false; // Butonu aktif yap
+                nextPartBtn.style.display = 'inline-block'; // Butonu görünür yap
             })
             .catch(() => {
                 console.log('Bölüm sona erdi.');
-                nextPartBtn.disabled = true; // Eğer part yoksa butonu pasif yap
+                nextPartBtn.style.display = 'none'; // Eğer part yoksa butonu gizle
             });
     };
 }
