@@ -127,14 +127,20 @@ function playEpisode(series, episode) {
     videoPlayer.addEventListener('ended', () => {
         if (currentPart < maxParts) {
             currentPart++;
-            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`);
+            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`, true);
         }
     });
 
     nextPartBtn.onclick = () => {
-        if (currentPart < maxParts) {
-            currentPart++;
-            loadNextPart(`series/${series}/${episode}/part${currentPart}.webm`, true);
+        if (preloadedPart) {
+            console.log("Yeni part yüklendi, videoya geçiliyor...");
+            videoPlayer.src = preloadedPart;
+            videoPlayer.load();
+            videoPlayer.play().catch(() => {
+                console.log("Tarayıcı otomatik oynatmayı engelledi, kullanıcı etkileşimi bekleniyor.");
+            });
+        } else {
+            console.log("HATA: Next part butonu basıldı ama preloadedPart yok!");
         }
     };
 
@@ -148,11 +154,14 @@ function playEpisode(series, episode) {
                 if (preloadedPart) URL.revokeObjectURL(preloadedPart);
                 const videoURL = URL.createObjectURL(blob);
                 preloadedPart = videoURL;
-                videoPlayer.src = videoURL;
+
+                console.log("Next part başarıyla yüklendi:", nextPart);
 
                 if (playImmediately) {
+                    videoPlayer.src = videoURL;
+                    videoPlayer.load();
                     videoPlayer.play().catch(() => {
-                        console.log("Tarayıcı otomatik oynatmayı engelledi.");
+                        console.log("Tarayıcı otomatik oynatmayı engelledi, kullanıcı etkileşimi bekleniyor.");
                     });
                 }
 
@@ -194,6 +203,7 @@ function playEpisode(series, episode) {
                             reader.read().then(({ done, value }) => {
                                 if (done) {
                                     controller.close();
+                                    console.log("Sonraki part tamamen yüklendi:", nextPartPath);
                                     return;
                                 }
                                 receivedLength += value.length;
@@ -214,7 +224,6 @@ function playEpisode(series, episode) {
             });
     }
 }
-
 
 function playMedia(movie) {
     const content = document.getElementById('content');
