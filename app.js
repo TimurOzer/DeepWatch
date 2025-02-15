@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
             episodes: {
                 "1. Bölüm": { 
                     parts: [
-                        "https://drive.google.com/uc?export=download&id=1ogH9qLTyu-CYMFbfzseLoOMOcxaXEhb_", // Part 0
-                        "https://drive.google.com/uc?export=download&id=1zGvUOvChmpqtKDWTCumJ3zktT_y4OFFN"  // Part 1
+                        "https://drive.google.com/file/d/1ogH9qLTyu-CYMFbfzseLoOMOcxaXEhb_/view", // Part 0
+                        "https://drive.google.com/file/d/1zGvUOvChmpqtKDWTCumJ3zktT_y4OFFN/view"  // Part 1
                     ]
                 }
             }
