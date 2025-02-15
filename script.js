@@ -131,16 +131,18 @@ function playEpisode(series, episode) {
         }
     });
 
+    // Tek bir nextPartBtn onclick tanımlaması:
     nextPartBtn.onclick = () => {
         if (preloadedPart) {
-            console.log("Yeni part yüklendi, videoya geçiliyor...");
+            console.log("✅ Yeni part oynatılıyor:", preloadedPart);
             videoPlayer.src = preloadedPart;
             videoPlayer.load();
             videoPlayer.play().catch(() => {
-                console.log("Tarayıcı otomatik oynatmayı engelledi, kullanıcı etkileşimi bekleniyor.");
+                console.log("🔴 Tarayıcı otomatik oynatmayı engelledi, kullanıcı etkileşimi bekleniyor.");
             });
         } else {
-            console.log("HATA: Next part butonu basıldı ama preloadedPart yok!");
+            console.log("❌ HATA: Next part butonuna basıldı ama preloadedPart yok!");
+            nextPartBtn.style.display = "none";
         }
     };
 
@@ -155,27 +157,29 @@ function playEpisode(series, episode) {
                 const videoURL = URL.createObjectURL(blob);
                 preloadedPart = videoURL;
 
-                console.log("Next part başarıyla yüklendi:", nextPart);
+                console.log("✅ Next part başarıyla yüklendi:", nextPart);
+                console.log("🎬 Yeni Video URL:", preloadedPart);
+
+                nextPartBtn.style.display = "inline-block";
+                nextPartBtn.disabled = false;
 
                 if (playImmediately) {
-                    videoPlayer.src = videoURL;
+                    videoPlayer.src = preloadedPart;
                     videoPlayer.load();
                     videoPlayer.play().catch(() => {
-                        console.log("Tarayıcı otomatik oynatmayı engelledi, kullanıcı etkileşimi bekleniyor.");
+                        console.log("🔴 Tarayıcı otomatik oynatmayı engelledi.");
                     });
                 }
-
-                checkNextPart();
             })
             .catch(() => {
-                console.log('Bölüm sona erdi.');
-                nextPartBtn.style.display = 'none';
+                console.log("⚠️ Bölüm sona erdi, yeni part yok.");
+                nextPartBtn.style.display = "none";
             });
     }
 
     function checkNextPart() {
         let nextPartPath = `series/${series}/${episode}/part${currentPart + 1}.webm`;
-        fetch(nextPartPath, { method: 'HEAD' }) // Sonraki part var mı kontrol et
+        fetch(nextPartPath, { method: 'HEAD' })
             .then(response => {
                 if (response.ok) {
                     nextPartBtn.style.display = 'inline-block';
