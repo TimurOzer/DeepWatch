@@ -35,8 +35,8 @@ function playEpisode(series, episode) {
         <div class="video-player">
             <h2>${series} - ${episode}</h2>
             <video id="videoPlayer" controls>
-                <source src="series/${series}/${episode}/part0.mp4" type="video/mp4">
-                Your browser does not support the video tag.
+                <source src="series/${series}/${episode}/part0.webm" type="video/webm">
+                Tarayıcınız videoyu desteklemiyor.
             </video>
         </div>
     `;
@@ -46,7 +46,7 @@ function playEpisode(series, episode) {
 
     videoPlayer.addEventListener('ended', () => {
         currentPart++;
-        const nextPart = `series/${series}/${episode}/part${currentPart}.mp4`;
+        const nextPart = `series/${series}/${episode}/part${currentPart}.webm`;
         fetch(nextPart)
             .then(response => {
                 if (response.ok) {
