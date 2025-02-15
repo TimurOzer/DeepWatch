@@ -16,13 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentVideoParts = [];
   let currentPartIndex = 0;
-  let videoPlayer;
+let videoPlayer;
 
-  // Video Player'ı başlatma
-  const initVideoPlayer = () => {
-    if(videoPlayer) {
-      videoPlayer.dispose();
-    }
+const initVideoPlayer = () => {
+  if (!videoPlayer) {
     videoPlayer = videojs('videoPlayer', {
       controls: true,
       autoplay: false,
@@ -33,7 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
         hotkeys: true
       }
     });
-  };
+  } else {
+    // Eğer player zaten oluşturulmuşsa, durdurup başlangıca döndürün.
+    videoPlayer.pause();
+    videoPlayer.currentTime(0);
+  }
+};
+
 
   // Ana menü elemanlarına tıklama dinleyicileri
   document.getElementById('series').addEventListener('click', showSeriesList);
