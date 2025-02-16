@@ -10,9 +10,9 @@ const mediaData = {
     ],
     movies: [
         {
-            id: "inception",
-            title: "Inception",
-            image: "assets/movies/inception.jpg"
+            id: "WITCHER",
+            title: "WITCHER",
+            image: "assets/movies/witcher.jpg"
         }
     ]
 };
@@ -309,13 +309,149 @@ function playEpisode(series, episode) {
 }
 
 function playMedia(movie) {
-    const content = document.getElementById('content');
-    content.innerHTML = `
-        <div class="video-player">
-            <h2>${movie.title}</h2>
-            <video controls>
-                <source src="movies/${movie.id}/movie.webm" type="video/webm">
-            </video>
-        </div>
-    `;
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="video-player">
+      <h2>${movie.title}</h2>
+      <div id="loading" class="loading"></div>
+      <video id="videoPlayer" controls>
+        <source src="movies/${movie.id}/part0.webm" type="video/webm">
+      </video>
+      <div class="progress-container">
+        <p>Video Yükleme: <span id="videoLoadText">0%</span></p>
+        <progress id="videoProgress" value="0" max="100"></progress>
+      </div>
+      <div class="progress-container">
+        <p>Sonraki Part Yükleme: <span id="nextPartLoadText">0%</span></p>
+        <progress id="nextPartProgress" value="0" max="100"></progress>
+      </div>
+      <button id="nextPartBtn" style="display: none;">Next Part ➡️</button>
+    </div>
+  `;
+
+  const videoPlayer = document.getElementById('videoPlayer');
+  const nextPartBtn = document.getElementById('nextPartBtn');
+  const loading = document.getElementById('loading');
+  const videoProgress = document.getElementById('videoProgress');
+  const videoLoadText = document.getElementById('videoLoadText');
+  const nextPartProgress = document.getElementById('nextPartProgress');
+  const nextPartLoadText = document.getElementById('nextPartLoadText');
+
+  let currentPart = 0;
+  let nextVideoURL = null;
+  let isPreloading = false;
+  let preloadController = null;
+  let preloadedPartNumber = null;
+
+  function resetPreloadState() {
+    if (preloadController) {
+      preloadController.abort();
+      preloadController = null;
+    }
+    nextVideoURL = null;
+    isPreloading = false;
+    preloadedPartNumber = null;
+  }
+
+  function startPreloadForNextPart() {
+    resetPreloadState();
+    const nextPartNumber = currentPart + 1;
+    const nextPartPath = `movies/${movie.id}/part${nextPartNumber}.webm`;
+
+    fetch(nextPartPath, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) preloadNextPart(nextPartPath, nextPartNumber);
+        else nextPartBtn.style.display = 'none';
+      })
+      .catch(() => nextPartBtn.style.display = 'none');
+  }
+
+  function preloadNextPart(url, partNumber) {
+    if (isPreloading) return;
+    isPreloading = true;
+    nextPartBtn.disabled = true;
+    nextPartProgress.value = 0;
+    nextPartLoadText.textContent = "0%";
+    preloadController = new AbortController();
+
+    fetch(url, { signal: preloadController.signal })
+      .then(response => {
+        if (!response.ok) throw new Error('Yüklenemedi');
+        const totalLength = +response.headers.get('Content-Length') || 0;
+        const reader = response.body.getReader();
+        let receivedLength = 0;
+        const chunks = [];
+        
+        const pump = () => reader.read().then(({ done, value }) => {
+          if (done) return;
+          chunks.push(value);
+          receivedLength += value.length;
+          const percent = totalLength ? Math.round((receivedLength / totalLength) * 100) : 100;
+          nextPartProgress.value = percent;
+          nextPartLoadText.textContent = percent + "%";
+          return pump();
+        });
+        
+        return pump().then(() => new Blob(chunks));
+      })
+      .then(blob => {
+        if (currentPart + 1 !== partNumber) return;
+        nextVideoURL = URL.createObjectURL(blob);
+        preloadedPartNumber = partNumber;
+        nextPartBtn.style.display = "inline-block";
+        nextPartBtn.disabled = false;
+        isPreloading = false;
+      })
+      .catch(error => {
+        if (error.name !== "AbortError") {
+          nextPartProgress.value = 0;
+          nextPartLoadText.textContent = "Yüklenemedi";
+          nextPartBtn.style.display = "none";
+        }
+        isPreloading = false;
+        preloadController = null;
+      });
+  }
+
+  videoPlayer.addEventListener('loadeddata', () => {
+    videoPlayer.style.display = 'block';
+    loading.style.display = 'none';
+    startPreloadForNextPart();
+  });
+
+  videoPlayer.addEventListener('progress', () => {
+    if (videoPlayer.buffered.length > 0) {
+      const loaded = videoPlayer.buffered.end(0);
+      const total = videoPlayer.duration;
+      if (total > 0) {
+        const percent = Math.round((loaded / total) * 100);
+        videoProgress.value = percent;
+        videoLoadText.textContent = percent + "%";
+      }
+    }
+  });
+
+  videoPlayer.addEventListener('ended', () => {
+    if (isPreloading) {
+      setTimeout(() => !nextVideoURL && videoPlayer.pause(), 1000);
+    } else if (nextVideoURL && preloadedPartNumber === currentPart + 1) {
+      currentPart++;
+      videoPlayer.src = nextVideoURL;
+      videoPlayer.load();
+      videoPlayer.play().catch(console.error);
+      resetPreloadState();
+      startPreloadForNextPart();
+    }
+  });
+
+  nextPartBtn.onclick = () => {
+    if (!nextVideoURL || preloadedPartNumber !== currentPart + 1) return;
+    currentPart++;
+    videoPlayer.src = nextVideoURL;
+    videoPlayer.load();
+    videoPlayer.play().catch(console.error);
+    resetPreloadState();
+    nextPartBtn.style.display = "none";
+    startPreloadForNextPart();
+  };
 }
