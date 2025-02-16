@@ -87,8 +87,15 @@ function playEpisode(series, episode) {
       </div>
       <button id="nextPartBtn" style="display: none;">Next Part ➡️</button>
     </div>
+    <!-- Popup: Varsayılan olarak "hidden" sınıfı ile gizli -->
+    <div id="nextEpisodePopup" class="popup hidden">
+      <p>Sıradaki bölüme geçilsin mi?</p>
+      <button id="nextEpisodeYes">Evet</button>
+      <button id="nextEpisodeNo">Hayır</button>
+    </div>
   `;
 
+  // Video oynatıcı ve diğer elemanlar:
   const videoPlayer = document.getElementById('videoPlayer');
   const nextPartBtn = document.getElementById('nextPartBtn');
   const loading = document.getElementById('loading');
@@ -96,6 +103,10 @@ function playEpisode(series, episode) {
   const videoLoadText = document.getElementById('videoLoadText');
   const nextPartProgress = document.getElementById('nextPartProgress');
   const nextPartLoadText = document.getElementById('nextPartLoadText');
+  // Popup elemanları:
+  const nextEpisodePopup = document.getElementById('nextEpisodePopup');
+  const nextEpisodeYes = document.getElementById('nextEpisodeYes');
+  const nextEpisodeNo = document.getElementById('nextEpisodeNo');
 
   let currentPart = 0;
   let nextVideoURL = null;
@@ -114,7 +125,8 @@ function playEpisode(series, episode) {
   }
 
   function startPreloadForNextPart() {
-    resetPreloadState(); // Önceki preload iptal ediliyor
+    // Önceki preload işlemini tamamen sıfırla:
+    resetPreloadState();
 
     const nextPartNumber = currentPart + 1;
     const nextPartPath = `series/${series}/${episode}/part${nextPartNumber}.webm`;
@@ -125,10 +137,13 @@ function playEpisode(series, episode) {
           preloadNextPart(nextPartPath, nextPartNumber);
         } else {
           nextPartBtn.style.display = 'none';
+          // Eğer sıradaki part yoksa, sıradaki bölümü kontrol et:
+          checkNextEpisode();
         }
       })
       .catch(() => {
         nextPartBtn.style.display = 'none';
+        checkNextEpisode();
       });
   }
 
@@ -212,6 +227,7 @@ function playEpisode(series, episode) {
   });
 
   videoPlayer.addEventListener('ended', () => {
+    // Eğer preload edilmiş sonraki part varsa, otomatik geçiş yap:
     if (nextVideoURL && preloadedPartNumber === currentPart + 1) {
       currentPart++;
       console.log("✅ Otomatik geçiş. Yeni part numarası:", currentPart);
@@ -222,6 +238,9 @@ function playEpisode(series, episode) {
       });
       resetPreloadState();
       startPreloadForNextPart();
+    } else {
+      // Eğer preload yoksa (yani bölümler bitmişse), sıradaki bölümü kontrol et:
+      checkNextEpisode();
     }
   });
 
@@ -243,14 +262,43 @@ function playEpisode(series, episode) {
     videoPlayer.play().catch(() => {
       console.log("🔴 Tarayıcı otomatik oynatmayı engelledi, lütfen tekrar tıklayın.");
     });
-
     resetPreloadState();
     nextPartBtn.style.display = "none";
     startPreloadForNextPart();
   };
+
+  // Eğer mevcut bölümün part'ı kalmadıysa, sıradaki bölümü kontrol et:
+  function checkNextEpisode() {
+    // episode örneğin "eps1" gibi geldiğinden, sayı kısmını çıkaralım.
+    const match = episode.match(/\d+/);
+    if (!match) return;
+    const nextEpisodeNumber = parseInt(match[0], 10) + 1;
+    const nextEpisode = "eps" + nextEpisodeNumber;
+    const nextEpisodePath = `series/${series}/${nextEpisode}/part0.webm`;
+
+    fetch(nextEpisodePath, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          showNextEpisodePopup(series, nextEpisode);
+        }
+      })
+      .catch(() => {});
+  }
+
+  // Popup gösterimi: Eğer kullanıcı "Evet" derse yeni bölüme geçilir, "Hayır" derse popup kapatılır.
+  function showNextEpisodePopup(series, nextEpisode) {
+    nextEpisodePopup.classList.remove("hidden");
+
+    nextEpisodeYes.onclick = () => {
+      nextEpisodePopup.classList.add("hidden");
+      playEpisode(series, nextEpisode);
+    };
+
+    nextEpisodeNo.onclick = () => {
+      nextEpisodePopup.classList.add("hidden");
+    };
+  }
 }
-
-
 
 function playMedia(movie) {
     const content = document.getElementById('content');
