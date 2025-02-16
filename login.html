@@ -95,21 +95,33 @@
       <button onclick="login()">Giriş</button>
     </div>
   </div>
-  <script>
-    // Aşağıdaki değerleri kendinize göre ayarlayın:
-    const CORRECT_USERNAME = "DeepWatch";
-    const CORRECT_PASSWORD = "Deep15987";
+<script>
+  // SHA-256 Hashleme Fonksiyonu (Tarayıcıda çalışan güvenli bir yöntem)
+  async function sha256(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      if (user === CORRECT_USERNAME && pass === CORRECT_PASSWORD) {
-        sessionStorage.setItem("loggedIn", "true");
-        window.location.href = "index.html"; // Giriş başarılıysa index.html'e yönlendir
-      } else {
-        alert("Yanlış kullanıcı adı veya şifre!");
-      }
+  // Hashlenmiş Şifre (Bunu manuel olarak önceden hesaplayıp buraya yazabilirsin)
+  const CORRECT_USERNAME = "DeepWatch";
+  const CORRECT_PASSWORD_HASH = "16c7d8f7233b1e14a76f2de9f8c84e2d1f7b7bcdfcd4a1f39c8c3b0dc63423e7";
+
+  async function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    
+    // Kullanıcının girdiği şifreyi hashle
+    const hashedPass = await sha256(pass);
+    
+    if (user === CORRECT_USERNAME && hashedPass === CORRECT_PASSWORD_HASH) {
+      sessionStorage.setItem("loggedIn", "true");
+      window.location.href = "index.html"; // Giriş başarılıysa yönlendir
+    } else {
+      alert("Yanlış kullanıcı adı veya şifre!");
     }
-  </script>
+  }
+</script>
 </body>
 </html>
