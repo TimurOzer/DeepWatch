@@ -14,6 +14,12 @@ const mediaData = {
             title: "WITCHER",
             image: "assets/movies/witcher.jpg"
         }
+,
+        {
+            id: "ANORA",
+            title: "ANORA",
+            image: "assets/movies/anora.jpg"
+        }
     ]
 };
 
