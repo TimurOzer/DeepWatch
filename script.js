@@ -315,7 +315,7 @@ function playMedia(movie) {
       <h2>${movie.title}</h2>
       <div id="loading" class="loading"></div>
       <video id="videoPlayer" controls>
-        <source src="movies/${movie.id}/part0.webm" type="video/webm">
+        <source src="movies/${movie.id}/eps1/part0.webm" type="video/webm">
       </video>
       <div class="progress-container">
         <p>Video Yükleme: <span id="videoLoadText">0%</span></p>
@@ -356,7 +356,7 @@ function playMedia(movie) {
   function startPreloadForNextPart() {
     resetPreloadState();
     const nextPartNumber = currentPart + 1;
-    const nextPartPath = `movies/${movie.id}/part${nextPartNumber}.webm`;
+    const nextPartPath = `movies/${movie.id}/eps1/part${nextPartNumber}.webm`;
 
     fetch(nextPartPath, { method: 'HEAD' })
       .then(response => {
