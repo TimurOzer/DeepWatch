@@ -1,3 +1,13 @@
+<?php
+session_start(); // Oturum başlat
+
+// Eğer giriş yapılmamışsa, login sayfasına yönlendir
+if (!isset($_SESSION["loggedIn"]) || $_SESSION["loggedIn"] !== true) {
+    header("Location: login.php");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -12,32 +22,19 @@
             <img src="assets/logo.png" alt="DeepWatch Logo" class="logo">
             <h1>DeepWatch</h1>
         </div>
-        
         <div class="main-menu">
             <button class="tab-btn active" data-type="series" onclick="showContent('series')">Diziler</button>
             <button class="tab-btn" data-type="movies" onclick="showContent('movies')">Filmler</button>
         </div>
-
         <div id="content" class="content-grid"></div>
-    </div>
-
-    <!-- Popup buraya -->
-    <div id="nextEpisodePopup" class="popup hidden">
-      <p>Sıradaki bölüme geçilsin mi?</p>
-      <button id="nextEpisodeYes">Evet</button>
-      <button id="nextEpisodeNo">Hayır</button>
+        
+        <button onclick="logout()">Çıkış Yap</button>
     </div>
 
     <script>
-        // Sayfa yüklendiğinde oturum kontrolü yapalım:
-        window.addEventListener("DOMContentLoaded", () => {
-            // Eğer sessionStorage'da loggedIn yoksa veya "true" değilse, login.html'e gönder
-            if (sessionStorage.getItem("loggedIn") !== "true") {
-                window.location.href = "login.html";
-            }
-        });
+        function logout() {
+            window.location.href = "logout.php";
+        }
     </script>
-
-    <script src="script.js"></script>
 </body>
 </html>
