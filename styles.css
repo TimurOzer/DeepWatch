@@ -143,3 +143,22 @@ video {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* Popup genel görünümü (örnek) */
+.popup {
+  position: fixed;      /* Ekranda sabit dursun diye */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #222;
+  color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  z-index: 9999;        /* Üstte gözükmesi için */
+}
+
+/* .hidden sınıfı eklenince popup tamamen gizlensin */
+.hidden {
+  display: none !important;
+}
