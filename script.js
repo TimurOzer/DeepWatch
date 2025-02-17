@@ -22,7 +22,7 @@ const mediaData = {
         }
 ,
         {
-            id: "VENOM:LAST DANCE",
+            id: "VENOM",
             title: "VENOM",
             image: "assets/movies/venom.jpg"
         }
