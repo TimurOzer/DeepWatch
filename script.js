@@ -20,6 +20,12 @@ const mediaData = {
             title: "ANORA",
             image: "assets/movies/anora.jpg"
         }
+,
+        {
+            id: "VENOM:LAST DANCE",
+            title: "VENOM",
+            image: "assets/movies/venom.jpg"
+        }
     ]
 };
 
